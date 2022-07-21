@@ -31,9 +31,9 @@ protected:
     void setOtherParameters( const char*    pX);
 
 
-virtual int getMarshalledSize() const;
+    virtual int getMarshalledSize() const;
 
-     bool operator  ==(const EightByteChunk& rhs) const;
+    bool operator  ==(const EightByteChunk& rhs) const;
 };
 }
 
