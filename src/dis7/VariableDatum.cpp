@@ -32,6 +32,12 @@ void VariableDatum::setVariableDatumLength(unsigned int pX) {
 std::vector<EightByteChunk>& VariableDatum::getVariableDatums() {
   return _variableDatums;
 }
+
+const std::vector<EightByteChunk>& VariableDatum::getVariableDatums() const
+{
+    return _variableDatums;
+}
+
 template <typename T>
 void VariableDatum::swapArray(T* array, uint16_t size) {
   int temp = 0;

@@ -2,8 +2,9 @@
 
 #include <dis7/EightByteChunk.h>
 #include <dis7/msLibMacro.h>
-#include <utils/DataStream.h>
 #include <stdint.h>
+#include <utils/DataStream.h>
+
 #include <vector>
 
 namespace DIS {
@@ -48,6 +49,7 @@ class EXPORT_MACRO VariableDatum {
   void setVariableDatumLength(unsigned int pX);
 
   std::vector<EightByteChunk>& getVariableDatums();
+  const std::vector<EightByteChunk>& getVariableDatums() const;
 
   /**
    * @brief Retrieve only the array of bytes relative to the payload of the

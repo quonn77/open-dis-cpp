@@ -22,7 +22,7 @@ protected:
   /** ID of request */
   unsigned int _requestID; 
 
-  /** padding */
+  /** padding - unused */
   unsigned int _padding1; 
 
   /** Number of fixed datum records */
