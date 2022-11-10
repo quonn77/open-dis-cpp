@@ -1,5 +1,5 @@
 #include <dis7/EightByteChunk.h>
-
+#include <iostream>
 using namespace DIS;
 
 
@@ -31,6 +31,7 @@ void EightByteChunk::setOtherParameters(const char* x)
 {
    for(int i = 0; i < 8; i++)
    {
+        std::cout << "i="<<std::to_string(i)<<" char="<<x[i]<<std::endl;
         _otherParameters[i] = x[i];
    }
 }

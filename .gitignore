@@ -5,6 +5,7 @@ Makefile
 *.sln
 *.sdf
 *.suo
+.vscode
 obj/
 Build/
 build/

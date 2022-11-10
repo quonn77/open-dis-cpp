@@ -45,7 +45,18 @@ class EXPORT_MACRO VariableDatum {
   unsigned int getVariableDatumID() const;
   void setVariableDatumID(unsigned int pX);
 
+  /**
+   * @brief Get the Variable Datum Length in bits
+   *
+   * @return unsigned int the length in bits of the variable datum
+   */
   unsigned int getVariableDatumLength() const;
+
+  /**
+   * @brief Set the Variable Datum Length in bits
+   *
+   * @param pX the number of bit of the variable datum
+   */
   void setVariableDatumLength(unsigned int pX);
 
   std::vector<EightByteChunk>& getVariableDatums();
@@ -65,7 +76,7 @@ class EXPORT_MACRO VariableDatum {
    * Use #getVariableDatumLength in order to know how many bits have been used
    * for the payload
    *
-   * An please remember that if you have in memory a data like (N is 4 bit
+   * And please remember that if you have in memory a data like (N is 4 bit
    * group)
    *
    *       N-4  N-3  N-2  N-1  N
@@ -89,8 +100,9 @@ class EXPORT_MACRO VariableDatum {
    * @param data the payload
    * @param howManyBytes the dimension of the data array (the payload). Please
    * note that this is not the same as #setVariableDatumLength, indeed they both
-   * coincide only if it is byte aligned (varibaleDatumLength could be 12 bit)
-   * So here we don't set the variable datum length using this value
+   * coincide only if it is byte aligned (varibaleDatumLength could be 12 bit).
+   * Here we set the variable datum length using the number of bytes * 8. If it is 
+   * different
    */
   void setPayLoad(unsigned char* data, int howManyBytes);
 
@@ -110,26 +122,26 @@ class EXPORT_MACRO VariableDatum {
   /**
    * @brief Shift an array right
    * @param array The array to shift
-   * @param len The number of array elements.
-   * @param shift The number of bits to shift
+   * @param len The number of array elements (it is the number of bytes).
+   * @param shift The number of bits to shift right the array
    */
   void shiftRight(unsigned char* array, uint16_t len, uint32_t shift);
 
   /**
    * @brief Shift an array left of the given bits
    *
-   * @param array
-   * @param len
-   * @param shift
+   * @param array the array to shift
+   * @param len the number of array elements (it is the number of bytes).
+   * @param shift the number of bit to shift left the array
    */
   void shiftLeft(unsigned char* array, uint16_t len, uint32_t shift);
 
   /**
-   * @brief
+   * @brief Swap (reverse) the array of the specified size
    *
    * @tparam T
-   * @param array
-   * @param size
+   * @param array The array to swap
+   * @param size the length of the array
    */
   template <typename T>
   void swapArray(T* array, uint16_t size);

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 project(OpenDIS)
-
+set (CMAKE_CXX_STANDARD 11)
 ## Libraries
 
 
@@ -46,14 +46,48 @@ file(GLOB EX_SENDER_SOURCES
   "examples/Timer.cpp"
 )
 
+file(GLOB TEST_EXECUTABLES_DIS7
+  "examplesDIS7/*.cxx"
+)
+
+file(GLOB EX_DIS7_SOURCES
+  "examples/Connection.cpp"
+  "examplesDIS7/*.cpp"
+  "examples/Timer.cpp"
+)
+
 if(WIN32)
        set(SDL_LIBS SDL2main SDL2 SDL2_net)
 else(WIN32)
        set(SDL_LIBS SDL2 SDL2_net)
 endif(WIN32)
 
+add_library(Dis7Example SHARED ${EX_DIS7_SOURCES})
+target_include_directories(Dis7Example PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> $<INSTALL_INTERFACE:> )
+# Add compile definition EXPORT_LIBRARY for DIS7 msLibMacro.h
+
+target_compile_definitions(Dis7Example PRIVATE EXPORT_LIBRARY)
+
+foreach( Exec ${TEST_EXECUTABLES_DIS7})
+  message("Main Test class is ${Exec} - SDL_LIBS = ${SDL_LIBS}") 
+  get_filename_component(SampleProcess ${Exec} NAME_WE)
+  add_executable(${SampleProcess} ${Exec})
+  target_link_libraries(${SampleProcess} PRIVATE OpenDIS7)
+  target_link_libraries(${SampleProcess} PRIVATE Dis7Example)
+  target_link_libraries(${SampleProcess} PRIVATE ${SDL_LIBS})
+  # add src to ExampleSender include directories
+  target_include_directories(${SampleProcess} PRIVATE src)
+  target_include_directories(${SampleProcess} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> $<INSTALL_INTERFACE:> )
+
+
+  message("Example process is: ${SampleProcess}")
+endforeach( Exec ${TEST_EXECUTABLES_DIS7})
+
+
+
 # Define ExampleSender Executable
 add_executable(ExampleSender ${EX_SENDER_SOURCES})
+
 # Link OpenDIS into ExampleSender
 target_link_libraries(ExampleSender PRIVATE OpenDIS6)
 target_link_libraries(ExampleSender PRIVATE ${SDL_LIBS})
@@ -87,6 +121,11 @@ if(SDL_INC_DIR)
   message("\tvalue: ${SDL_INC_DIR}")
   # Add SDL_INC_DIR to the include directories for both exampe apps
   target_include_directories(ExampleSender PUBLIC ${SDL_INC_DIR})
+  target_include_directories(Dis7Example PUBLIC ${SDL_INC_DIR})
+  foreach( Exec ${TEST_EXECUTABLES_DIS7})
+    get_filename_component(SampleProcess ${Exec} NAME_WE)
+    target_include_directories(${SampleProcess} PUBLIC ${SDL_INC_DIR})
+  endforeach(Exec ${TEST_EXECUTABLES_DIS7})
   target_include_directories(ExampleReceiver PUBLIC ${SDL_INC_DIR})
 else(SDL_INC_DIR)
   # Otherwise, try get SDL2 Compiler Flags from sdl2-config
@@ -113,6 +152,11 @@ else(SDL_INC_DIR)
     endif(WIN32)
     target_compile_options(ExampleSender PRIVATE "${SDL_CFLAGS}")
     target_compile_options(ExampleReceiver PRIVATE "${SDL_CFLAGS}")
+    target_compile_options(Dis7Example PRIVATE "${SDL_CFLAGS}")
+    foreach( Exec ${TEST_EXECUTABLES_DIS7})
+       get_filename_component(SampleProcess ${Exec} NAME_WE)
+       target_compile_options(${SampleProcess} PRIVATE "${SDL_CFLAGS}")
+    endforeach(Exec ${TEST_EXECUTABLES_DIS7})
   endif(SDL_CERR)
 endif(SDL_INC_DIR)
 
@@ -121,6 +165,11 @@ if(SDL_LIB_DIR)
   message("Using SDL2 include directory defined with -DSDL_LIB_DIR")
   message("\tvalue: ${SDL_LIB_DIR}")
   target_link_directories(ExampleSender PUBLIC ${SDL_LIB_DIR})
+  foreach( Exec ${TEST_EXECUTABLES_DIS7})
+    get_filename_component(SampleProcess ${Exec} NAME_WE)
+    target_link_directories(${SampleProcess} PUBLIC ${SDL_LIB_DIR})
+  endforeach(Exec ${TEST_EXECUTABLES_DIS7})
+  
   target_link_directories(ExampleReceiver PUBLIC ${SDL_LIB_DIR})
 else(SDL_LIB_DIR)
   # Otherwise, try get SDL2 Library Flags from sdl2-config
@@ -146,6 +195,10 @@ else(SDL_LIB_DIR)
       separate_arguments(SDL_LFLAGS WINDOWS_COMMAND "${SDL_LFLAGS}")
     endif(WIN32)
     target_link_libraries(ExampleSender PRIVATE "${SDL_LFLAGS}")
+    foreach( Exec ${TEST_EXECUTABLES_DIS7})
+      get_filename_component(SampleProcess ${Exec} NAME_WE)
+      target_link_libraries(${SampleProcess} PRIVATE "${SDL_LFLAGS}")
+    endforeach(Exec ${TEST_EXECUTABLES_DIS7})
     target_link_libraries(ExampleReceiver PRIVATE "${SDL_LFLAGS}")
   endif(SDL_LERR)
 endif(SDL_LIB_DIR)
@@ -157,19 +210,25 @@ include(GNUInstallDirs)
 IF(NOT DEFINED LIBDIR)
   set(LIBDIR "lib")   # Was not defined on Travis CI
 ENDIF(NOT DEFINED LIBDIR)
+message("Using LIBDIR=${LIBDIR}")
 # Configure install target (i.e. what files to install)
 install(TARGETS OpenDIS6 EXPORT OpenDIS6Config DESTINATION "${LIBDIR}")
 install(EXPORT OpenDIS6Config DESTINATION "lib/cmake/OpenDIS6")
 install(TARGETS OpenDIS7 EXPORT OpenDIS7Config DESTINATION "${LIBDIR}")
 install(EXPORT OpenDIS7Config DESTINATION "lib/cmake/OpenDIS7")
-install(TARGETS ExampleReceiver ExampleSender DESTINATION "bin")
+install(TARGETS ExampleReceiver ExampleSender  DESTINATION "bin")
+foreach( Exec ${TEST_EXECUTABLES_DIS7})
+  get_filename_component(SampleProcess ${Exec} NAME_WE)
+  install(TARGETS ${SampleProcess} DESTINATION "bin")
+endforeach(Exec ${TEST_EXECUTABLES_DIS7})
+
 install(DIRECTORY src/ DESTINATION "include"
         FILES_MATCHING PATTERN "*.h"
 )
 
 # configure package target (i.e. Package Types, and meta data)
 set(CPACK_GENERATOR "DEB" "RPM" "TXZ" "TGZ")
-set(CPACK_PACKAGE_VERSION 1.0.0)
+set(CPACK_PACKAGE_VERSION 1.0.1)
 set(CPACK_PACKAGE_NAME "OpenDis")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "The open DIS cpp library")
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}.${CMAKE_SYSTEM_PROCESSOR}")

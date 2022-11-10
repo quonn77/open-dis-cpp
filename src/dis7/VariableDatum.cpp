@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 
 using namespace DIS;
 
@@ -33,9 +34,8 @@ std::vector<EightByteChunk>& VariableDatum::getVariableDatums() {
   return _variableDatums;
 }
 
-const std::vector<EightByteChunk>& VariableDatum::getVariableDatums() const
-{
-    return _variableDatums;
+const std::vector<EightByteChunk>& VariableDatum::getVariableDatums() const {
+  return _variableDatums;
 }
 
 template <typename T>
@@ -127,6 +127,10 @@ unsigned char* VariableDatum::getPayLoad(bool shiftRightOption) {
   // We have to send at least 64 bit of data
   unsigned int paddingBits = getPaddingBits();
 
+  std::cout << "\n\n_variableDatumLength = " << std::to_string(_variableDatumLength) << std::endl;
+  std::cout << "bytesLength = " << std::to_string(bytesLength) << std::endl;
+  std::cout << "chunksLength = " << std::to_string(chunksLength) << std::endl;
+  std::cout << "paddingBits = " << std::to_string(paddingBits) << std::endl;
   /**
    * allocate the char* bytebuffer
    */
@@ -136,14 +140,18 @@ unsigned char* VariableDatum::getPayLoad(bool shiftRightOption) {
   // Copy from the ByteChunk to the array of bytes to be returned
   for (int i = 0; i < chunksLength; i++) {
     DIS::EightByteChunk chunk = _variableDatums[i];
+    std::cout << "Cunk n° = " << std::to_string(i+1) << std::endl;
     char* chunkData = chunk.getOtherParameters();
-    for (int j = 0; j < 8 && totalBytesProcessed <= bytesLength; j++) {
+    for (int j = 0; j < 8 && totalBytesProcessed < bytesLength; j++) {
       bytesBuffer[totalBytesProcessed++] = chunkData[j];
+      std::cout << "bytesBuffer[j] = " << bytesBuffer[j] << std::endl;
     }
   }
+  std::cout << "totalBytesProcessed = " << std::to_string(totalBytesProcessed) << std::endl;
+  std::cout << "shiftRight = " << std::to_string(shiftRightOption) << std::endl;
 
   // Now it's time to shift right data according to padding and if requested
-  if (shiftRightOption) {
+  if (shiftRightOption && bytesLength>8) {
     shiftRight(bytesBuffer, bytesLength, paddingBits);
   }
   return bytesBuffer;
@@ -156,17 +164,31 @@ void VariableDatum::setPayLoad(unsigned char* data, int howManyBytes) {
       static_cast<unsigned int>(ceil(howManyBytes / 8.0));
   int totalBytesProcessed = 0;
 
+  std::cout << "Chunks: " << std::to_string(chunksLength)
+            << " Total bytes: " << std::to_string(totalBytesProcessed)
+            << " How many bytes: " << std::to_string(howManyBytes) << std::endl;
+
   for (int i = 0; i < chunksLength; i++) {
-    DIS::EightByteChunk chunk = _variableDatums[i];
+  //  std::cout << "Processing i=" << std::to_string(i) << std::endl;
+    DIS::EightByteChunk chunk;  // = _variableDatums[i];
+   // std::cout << "Chunk acquired" << std::endl;
     char* charData = new char[8];
     for (int k = 0; k < 8; k++) {
+     // std::cout << "Processing k=" << std::to_string(k) << std::endl;
       charData[k] = 0x0;
     }
-    for (int j = 0; j < 8 && totalBytesProcessed <= howManyBytes; j++) {
+    for (int j = 0; j < 8 && totalBytesProcessed < howManyBytes; j++) {
       charData[j] = data[totalBytesProcessed++];
     }
+    std::cout << "Total byte processed = " << std::to_string(totalBytesProcessed) << std::endl;
+    _variableDatumLength = totalBytesProcessed * 8;
+ 
+ //    std::cout << "Setting other parameters"<< std::endl;
+
     // charData is already null initialized so data is already 64bit padded
     chunk.setOtherParameters(charData);
+    
+    _variableDatums.push_back(chunk);
   }
 }
 
@@ -197,8 +219,6 @@ void VariableDatum::unmarshal(DataStream& dataStream) {
   dataStream >> _variableDatumLength;
   unsigned int numberOfChunks =
       static_cast<unsigned int>(std::ceil(_variableDatumLength / 64.0));
-
-  //(_variableDatumLength / 64) + ((_variableDatumLength % 64) > 0);
 
   _variableDatums.clear();
   for (size_t idx = 0; idx < numberOfChunks; idx++) {
