@@ -19,11 +19,11 @@ namespace DIS
 class EXPORT_MACRO StopFreezePdu : public SimulationManagementFamilyPdu
 {
 protected:
-  /** Identifier for originating entity(or simulation) */
-  EntityID _originatingID; 
+//   /** Identifier for originating entity(or simulation) */
+//   EntityID _originatingID; 
 
-  /** Identifier for the receiving entity(or simulation) */
-  EntityID _receivingID; 
+//   /** Identifier for the receiving entity(or simulation) */
+//   EntityID _receivingID; 
 
   /** real-world(UTC) time at which the entity shall stop or freeze in the exercise */
   ClockTime _realWorldTime; 
@@ -34,7 +34,7 @@ protected:
   /** Internal behavior of the entity(or simulation) and its appearance while frozen to the other participants */
   unsigned char _frozenBehavior; 
 
-  /** padding */
+  /** padding (16 bit) */
   short _padding1; 
 
   /** Request ID that is unique */
