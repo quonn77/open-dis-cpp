@@ -25,14 +25,7 @@ class EXPORT_MACRO VariableDatum {
   /** Length, in bits, of the variable datum. */
   unsigned int _variableDatumLength;
 
-  /** Variable datum. This can be any number of bits long, depending on the
-   * datum. */
-  //   unsigned int _variableDatumBits;
-
-  /** padding to put the record on a 64 bit boundary */
-  // unsigned int _padding;
-
-  // Variable Data
+  // Variable Data as multiple of 8 bytes ( 64 bit )
   std::vector<EightByteChunk> _variableDatums;
 
  public:

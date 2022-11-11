@@ -263,9 +263,7 @@ int VariableDatum::getMarshalledSize() const {
 
     marshalSize = marshalSize + 4;  // _variableDatumID
     marshalSize = marshalSize + 4;  // _variableDatumLength
-    //_variableDatumBits contains also the padding (it has been modelled to be 64
-    // bit aligned)
-    marshalSize = marshalSize + _variableDatums.size() * 8;  // _variableDatumBits
+    marshalSize = marshalSize + _variableDatums.size() * 8; // Each element is 8 bytes long  
     return marshalSize;
 }
 
