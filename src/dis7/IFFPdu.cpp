@@ -1,5 +1,6 @@
 #include <dis7/IFFPdu.h>
 
+#include <iostream>
 using namespace DIS;
 
 IFFPdu::IFFPdu()
@@ -12,11 +13,9 @@ IFFPdu::IFFPdu()
       _systemDesignator(0),
       _systemSpecificData(0),
       _fundamentalOperationalData(),
-      _layer2()
-// _layerHeader(),
-// _beamData(),
-// _secondaryOperationalData()
-{
+      _layer2(),
+      _layer3(nullptr),
+      _layer4(nullptr) {
   setPduType(28);
 }
 
@@ -26,28 +25,29 @@ IFFPdu::~IFFPdu() {
 
 Layer2& IFFPdu::getLayer2() { return _layer2; }
 const Layer2& IFFPdu::getLayer2() const { return _layer2; }
-void IFFPdu::setLayer2(const Layer2& pX){
-  this->_layer2 = pX;
-}
+void IFFPdu::setLayer2(const Layer2& pX) { this->_layer2 = pX; }
 
-EntityID& IFFPdu::getEmittingEntityID() {
-  return _emittingEntityID; }
+Layer3* IFFPdu::getLayer3() { return _layer3; }
+Layer3* IFFPdu::getLayer3() const { return _layer3; }
+void IFFPdu::setLayer3(Layer3* pX) { this->_layer3 = pX; }
+
+Layer4* IFFPdu::getLayer4() { return _layer4; }
+Layer4* IFFPdu::getLayer4() const { return _layer4; }
+void IFFPdu::setLayer4(Layer4* pX) { this->_layer4 = pX; }
+
+EntityID& IFFPdu::getEmittingEntityID() { return _emittingEntityID; }
 
 const EntityID& IFFPdu::getEmittingEntityID() const {
   return _emittingEntityID;
 }
 
-void IFFPdu::setEmittingEntityID(const EntityID& pX) {
-  _emittingEntityID = pX; }
+void IFFPdu::setEmittingEntityID(const EntityID& pX) { _emittingEntityID = pX; }
 
-EventIdentifier& IFFPdu::getEventID() {
-  return _eventID; }
+EventIdentifier& IFFPdu::getEventID() { return _eventID; }
 
-const EventIdentifier& IFFPdu::getEventID() const {
-  return _eventID; }
+const EventIdentifier& IFFPdu::getEventID() const { return _eventID; }
 
-void IFFPdu::setEventID(const EventIdentifier& pX) {
-  _eventID = pX; }
+void IFFPdu::setEventID(const EventIdentifier& pX) { _eventID = pX; }
 
 Vector3Float& IFFPdu::getRelativeAntennaLocation() {
   return _relativeAntennaLocation;
@@ -65,20 +65,15 @@ unsigned int IFFPdu::getNumberOfIFFParameters() const {
   return _numberOfIFFParameters;
 }
 
-SystemIdentifier& IFFPdu::getSystemID() {
-  return _systemID; }
+SystemIdentifier& IFFPdu::getSystemID() { return _systemID; }
 
-const SystemIdentifier& IFFPdu::getSystemID() const {
-  return _systemID; }
+const SystemIdentifier& IFFPdu::getSystemID() const { return _systemID; }
 
-void IFFPdu::setSystemID(const SystemIdentifier& pX) {
-  _systemID = pX; }
+void IFFPdu::setSystemID(const SystemIdentifier& pX) { _systemID = pX; }
 
-unsigned char IFFPdu::getSystemDesignator() const {
-  return _systemDesignator; }
+unsigned char IFFPdu::getSystemDesignator() const { return _systemDesignator; }
 
-void IFFPdu::setSystemDesignator(unsigned char pX) {
-  _systemDesignator = pX; }
+void IFFPdu::setSystemDesignator(unsigned char pX) { _systemDesignator = pX; }
 
 unsigned char IFFPdu::getSystemSpecificData() const {
   return _systemSpecificData;
@@ -112,10 +107,42 @@ void IFFPdu::marshal(DataStream& dataStream) const {
   dataStream << _systemDesignator;
   dataStream << _systemSpecificData;
   _fundamentalOperationalData.marshal(dataStream);
-
+  unsigned short systemType = getSystemID().getSystemType();
+  bool transponder = getSystemID().isTransponder();
   // We have to marshall layer 2 only if the info is available
-  if (_fundamentalOperationalData.getInformationLayers() & (0x1 << 2) == 1) {
+  if (_fundamentalOperationalData.isInformationLayerPresent(2)) {
     _layer2.marshal(dataStream);
+  }
+
+  if (_fundamentalOperationalData.isInformationLayerPresent(3)) {
+    if (_layer3 != nullptr) {
+      _layer3->discriminator(transponder);
+      _layer3->marshal(dataStream);
+    } else {
+      std::string message(
+          "Layer3 has been declared as present, but has not been set!!");
+      std::cerr << message.c_str() << std::endl;
+      throw std::logic_error(message.c_str());
+    }
+    // if (systemType ==
+    //     static_cast<unsigned short>(IFFSystemType::Mode_5_Interrogator)) {
+    //   _layer3M5IF.marshal(dataStream);
+    // } else if (systemType ==
+    //            static_cast<unsigned
+    //            short>(IFFSystemType::Mode_5_Transponder)) {
+    //   _layer3M5TF.marshal(dataStream);
+    // }
+  }
+  if (_fundamentalOperationalData.isInformationLayerPresent(4)) {
+    if (_layer4 != nullptr) {
+      _layer4->discriminator(transponder);
+      _layer4->marshal(dataStream);
+    } else {
+      std::string message(
+          "Layer4 has been declared as present, but has not been set!!");
+      std::cerr << message.c_str() << std::endl;
+      throw std::logic_error(message.c_str());
+    }
   }
 }
 
@@ -132,8 +159,25 @@ void IFFPdu::unmarshal(DataStream& dataStream) {
   // Other fields are optional we have to unmarshall only if defined inside the
   // fundamental operational data We have to check the third bit (bit in
   // position 2 starting from 0)
-  if (_fundamentalOperationalData.getInformationLayers() & (0x1 << 2) == 1) {
+  if (_fundamentalOperationalData.isInformationLayerPresent(2)) {
     _layer2.unmarshal(dataStream);
+  }
+  bool transponder = _systemID.isTransponder();
+  if (_fundamentalOperationalData.isInformationLayerPresent(3)) {
+    if (_layer3 == nullptr) {
+      _layer3 = new Layer3(transponder);
+    } else {
+      _layer3->discriminator(transponder);
+    }
+    _layer3->unmarshal(dataStream);
+  }
+  if (_fundamentalOperationalData.isInformationLayerPresent(4)) {
+    if (_layer4 == nullptr) {
+      _layer4 = new Layer4(transponder);
+    } else {
+      _layer4->discriminator(transponder);
+    }
+    _layer4->unmarshal(dataStream);
   }
 }
 
@@ -142,14 +186,18 @@ bool IFFPdu::operator==(const IFFPdu& rhs) const {
 
   ivarsEqual = DistributedEmissionsFamilyPdu::operator==(rhs);
 
-  if (!(_emittingEntityID == rhs._emittingEntityID)) ivarsEqual = false;
-  if (!(_eventID == rhs._eventID)) ivarsEqual = false;
-  if (!(_relativeAntennaLocation == rhs._relativeAntennaLocation))
+  if (ivarsEqual && !(_emittingEntityID == rhs._emittingEntityID))
     ivarsEqual = false;
-  if (!(_systemID == rhs._systemID)) ivarsEqual = false;
-  if (!(_systemDesignator == rhs._systemDesignator)) ivarsEqual = false;
-  if (!(_systemSpecificData == rhs._systemSpecificData)) ivarsEqual = false;
-  if (!(_fundamentalOperationalData == rhs._fundamentalOperationalData))
+  if (ivarsEqual && !(_eventID == rhs._eventID)) ivarsEqual = false;
+  if (ivarsEqual && !(_relativeAntennaLocation == rhs._relativeAntennaLocation))
+    ivarsEqual = false;
+  if (ivarsEqual && !(_systemID == rhs._systemID)) ivarsEqual = false;
+  if (ivarsEqual && !(_systemDesignator == rhs._systemDesignator))
+    ivarsEqual = false;
+  if (ivarsEqual && !(_systemSpecificData == rhs._systemSpecificData))
+    ivarsEqual = false;
+  if (ivarsEqual &&
+      !(_fundamentalOperationalData == rhs._fundamentalOperationalData))
     ivarsEqual = false;
 
   // if (!(_layerHeader == rhs._layerHeader)) ivarsEqual = false;
@@ -169,30 +217,30 @@ int IFFPdu::getMarshalledSize() const {
   int marshalSize = 0;
 
   marshalSize = DistributedEmissionsFamilyPdu::getMarshalledSize();
-  marshalSize =
-      marshalSize + _emittingEntityID.getMarshalledSize();  // _emittingEntityID
-  marshalSize = marshalSize + _eventID.getMarshalledSize();  // _eventID
-  marshalSize =
-      marshalSize +
+  marshalSize += _emittingEntityID.getMarshalledSize();  // _emittingEntityID
+  marshalSize += _eventID.getMarshalledSize();           // _eventID
+  marshalSize +=
       _relativeAntennaLocation.getMarshalledSize();  //_relativeAntennaLocation
-  marshalSize = marshalSize + 1;                     // _numberOfIFFParameters
   marshalSize = marshalSize + _systemID.getMarshalledSize();  //_systemID
   marshalSize = marshalSize + 1;  //_systemDesignator
   marshalSize = marshalSize + 1;  //_systemSpecificData
-  marshalSize =
-      marshalSize + _fundamentalOperationalData
-                        .getMarshalledSize();  // _fundamentalOperationalData
+  marshalSize += _fundamentalOperationalData
+                     .getMarshalledSize();  // _fundamentalOperationalData
 
-  // marshalSize = marshalSize + _layerHeader.getMarshalledSize();  //
-  // _layerHeader marshalSize = marshalSize + _beamData.getMarshalledSize(); //
-  // _beamData marshalSize =
-  //     marshalSize + _secondaryOperationalData
-  //                       .getMarshalledSize();  // _secondaryOperationalData
+  if (_fundamentalOperationalData.isInformationLayerPresent(2)) {
+    marshalSize += _layer2.getMarshalledSize();
+  }
+  unsigned short systemType = getSystemID().getSystemType();
 
-  // for (unsigned long long idx = 0; idx < _iffParameters.size(); idx++) {
-  //   IFFFundamentalParameterData listElement = _iffParameters[idx];
-  //   marshalSize = marshalSize + listElement.getMarshalledSize();
-  // }
-
+  if (_fundamentalOperationalData.isInformationLayerPresent(3)) {
+    if (_layer3 != nullptr) {
+      marshalSize += _layer3->getMarshalledSize();
+    }
+  }
+  if (_fundamentalOperationalData.isInformationLayerPresent(4)) {
+    if (_layer4 != nullptr) {
+      marshalSize += _layer4->getMarshalledSize();
+    }
+  }
   return marshalSize;
 }

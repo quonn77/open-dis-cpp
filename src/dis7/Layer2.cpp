@@ -10,7 +10,6 @@ void Layer2::marshal(DataStream& dataStream) const {
   _layerHeader.marshal(dataStream);
   _beamData.marshal(dataStream);
   _secondaryOperationalData.marshal(dataStream);
-  dataStream << (unsigned char)_iffParameters.size();
   for (size_t idx = 0; idx < _iffParameters.size(); idx++) {
     IFFFundamentalParameterData x = _iffParameters[idx];
     x.marshal(dataStream);
@@ -70,14 +69,13 @@ void Layer2::setIFFParameters(
 int Layer2::getMarshalledSize() const {
   int marshalSize = 0;
 
-  marshalSize = marshalSize + _layerHeader.getMarshalledSize();  // _layerHeader
-  marshalSize = marshalSize + _beamData.getMarshalledSize();     // _beamData
-  marshalSize =
-      marshalSize + _secondaryOperationalData
-                        .getMarshalledSize();  // _secondaryOperationalData
+  marshalSize += _layerHeader.getMarshalledSize();  // _layerHeader
+  marshalSize += _beamData.getMarshalledSize();     // _beamData
+  marshalSize += _secondaryOperationalData
+                     .getMarshalledSize();  // _secondaryOperationalData
 
   for (unsigned long long idx = 0; idx < _iffParameters.size(); idx++) {
     IFFFundamentalParameterData listElement = _iffParameters[idx];
-    marshalSize = marshalSize + listElement.getMarshalledSize();
+    marshalSize += listElement.getMarshalledSize();
   }
 }

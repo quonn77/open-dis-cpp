@@ -1,69 +1,68 @@
 #pragma once
 
-#include <dis7/msLibMacro.h>
+#include <dis7/PduSuperclass.h>
+#include <dis7/EntityID.h>
 #include <utils/DataStream.h>
-#include <dis7/IPDU.h>
+#include <dis7/msLibMacro.h>
 
 namespace DIS {
-// The superclass for all PDUs, including classic and Live Entity (LE) PDUs.
-// This incorporates the PduHeader record, section 7.2.2
 
 // Copyright (c) 2007-2009, MOVES Institute, Naval Postgraduate School. All
 // rights reserved.
 //
-// @author DMcG, jkg
-
-class EXPORT_MACRO PduSuperclass : public IPDU{
- protected:
-  /** The version of the protocol. 5=DIS-1995, 6=DIS-1998, 7=DIS-2009. */
-  unsigned char _protocolVersion;
-
-  /** Exercise ID */
-  unsigned char _exerciseID;
-
-  /** Type of pdu, unique for each PDU class */
-  unsigned char _pduType;
-
-  /** value that refers to the protocol family, eg SimulationManagement, et */
-  unsigned char _protocolFamily;
-
-  /** Timestamp value */
-  unsigned int _timestamp;
-
-  /** Length, in bytes, of the PDU */
-  unsigned short _length;
-
+// @author Alessio Iannone, quonn77@gmail.com
+class EXPORT_MACRO Mode5InterrogatorBasicData {
  public:
-  PduSuperclass();
-  virtual ~PduSuperclass();
-
+  Mode5InterrogatorBasicData();
+  virtual ~Mode5InterrogatorBasicData();
   virtual void marshal(DataStream& dataStream) const;
   virtual void unmarshal(DataStream& dataStream);
-
-  unsigned char getProtocolVersion() const;
-  void setProtocolVersion(unsigned char pX);
-
-  unsigned char getExerciseID() const;
-  void setExerciseID(unsigned char pX);
-
-  unsigned char getPduType() const;
-  void setPduType(unsigned char pX);
-
-  unsigned char getProtocolFamily() const;
-  void setProtocolFamily(unsigned char pX);
-
-  unsigned int getTimestamp() const;
-  void setTimestamp(unsigned int pX);
-
-  unsigned short getLength() const;
-  void setLength(unsigned short pX);
-
   virtual int getMarshalledSize() const;
 
-  bool operator==(const PduSuperclass& rhs) const;
+  bool operator==(const Mode5InterrogatorBasicData& rhs) const;
+
+  unsigned char getM5InterrogatorStatus();
+  void setM5InterrogatorStatus(unsigned char status);
+
+  unsigned int getM5MessageFormatPresent();
+  void setM5MessageFormatPresent(unsigned int m5MessageFormatPresent);
+
+  EntityID& getInterrogatedEntityID();
+  const EntityID& getInterrogatedEntityID() const;
+  void setInterrogatedEntityID(const EntityID& entityID);
+
+ protected:
+  unsigned char _m5InterrogatorStatus;
+  unsigned char _padding1;
+  unsigned short _padding2;
+
+  /**
+   *  This field shall indicate the Mode 5 Message Formats supported
+   * by this Mode 5 interrogator. See B.2.28 for requirements related to setting
+   * this field for a Mode 5 interrogator. This field shall be represented by a
+   * Mode 5 Message Formats record.
+   *
+   * This record shall be included in the Mode 5 Message Formats Present field
+   * of the Mode 5 Transponder Basic Data record and also the Mode 5
+   * Interrogator Basic Data record contained in Layer 3. This is a 32-bit
+   * record. The fields of this record are as follows: — Message Formats 0
+   * to 31. Each bit shall represent a specific message format as shown in Table
+   * B.32. It shall be represented by an enumeration as follows: Not Present (0)
+   * and Present (1)
+   */
+  unsigned int _m5MessageFormatPresent;
+
+  /**
+   * This field shall specify the Entity ID of the entity to which the
+   * interrogation is being directed. It shall be represented by an Entity ID
+   * record (page 548)
+   */
+  EntityID _interrogatedEntityID;
+
+  /// Unused
+  unsigned short _padding3;
 };
 }  // namespace DIS
-
 // Copyright (c) 1995-2009 held by the author(s).  All rights reserved.
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions

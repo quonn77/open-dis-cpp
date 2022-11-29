@@ -1,69 +1,59 @@
 #pragma once
 
+#include <dis7/IFFDataRecord.h>
+#include <dis7/IPDU.h>
+#include <dis7/LayerHeader.h>
+#include <dis7/ModeSInterrogatorBasicData.h>
+#include <dis7/PduSuperclass.h>
+#include <dis7/SimulationAddress.h>
 #include <dis7/msLibMacro.h>
 #include <utils/DataStream.h>
-#include <dis7/IPDU.h>
 
 namespace DIS {
-// The superclass for all PDUs, including classic and Live Entity (LE) PDUs.
-// This incorporates the PduHeader record, section 7.2.2
 
 // Copyright (c) 2007-2009, MOVES Institute, Naval Postgraduate School. All
 // rights reserved.
 //
-// @author DMcG, jkg
-
-class EXPORT_MACRO PduSuperclass : public IPDU{
- protected:
-  /** The version of the protocol. 5=DIS-1995, 6=DIS-1998, 7=DIS-2009. */
-  unsigned char _protocolVersion;
-
-  /** Exercise ID */
-  unsigned char _exerciseID;
-
-  /** Type of pdu, unique for each PDU class */
-  unsigned char _pduType;
-
-  /** value that refers to the protocol family, eg SimulationManagement, et */
-  unsigned char _protocolFamily;
-
-  /** Timestamp value */
-  unsigned int _timestamp;
-
-  /** Length, in bytes, of the PDU */
-  unsigned short _length;
-
+// @see Table 169—Layer 4 Mode S Interrogator Format page 404 of IEEE Std 1278.1
+//
+// @author Alessio Iannone, aia
+class EXPORT_MACRO Layer4ModeSIF : public IPDU {
  public:
-  PduSuperclass();
-  virtual ~PduSuperclass();
-
+  Layer4ModeSIF();
+  virtual ~Layer4ModeSIF();
   virtual void marshal(DataStream& dataStream) const;
   virtual void unmarshal(DataStream& dataStream);
-
-  unsigned char getProtocolVersion() const;
-  void setProtocolVersion(unsigned char pX);
-
-  unsigned char getExerciseID() const;
-  void setExerciseID(unsigned char pX);
-
-  unsigned char getPduType() const;
-  void setPduType(unsigned char pX);
-
-  unsigned char getProtocolFamily() const;
-  void setProtocolFamily(unsigned char pX);
-
-  unsigned int getTimestamp() const;
-  void setTimestamp(unsigned int pX);
-
-  unsigned short getLength() const;
-  void setLength(unsigned short pX);
-
   virtual int getMarshalledSize() const;
 
-  bool operator==(const PduSuperclass& rhs) const;
+  LayerHeader& getLayerHeader();
+  const LayerHeader& getLayerHeader() const;
+  void setLayerHeader(const LayerHeader& pX);
+
+  SimulationAddress& getReportingSimulation();
+  const SimulationAddress& getReportingSimulation() const;
+  void setReportingSimulation(const SimulationAddress& pX);
+
+  ModeSInterrogatorBasicData& getModeSInterrogatorBasicData();
+  const ModeSInterrogatorBasicData& getModeSInterrogatorBasicData() const;
+  void setModeSInterrogatorBasicData(const ModeSInterrogatorBasicData& pX);
+
+  unsigned short getNumberOfIffRecords();
+  const unsigned short getNumberOfIffRecords() const;
+
+  std::vector<IFFDataRecord>& getIFFParameters();
+  const std::vector<IFFDataRecord>& getIFFParameters() const;
+  void setIFFParameters(const std::vector<IFFDataRecord>& pX);
+  virtual bool operator==(const Layer4ModeSIF& rhs) const;
+
+ protected:
+  LayerHeader _layerHeader;
+  SimulationAddress _reportingSimulation;
+  ModeSInterrogatorBasicData _mSInterrogatorBasicData;
+  unsigned short _padding;
+  unsigned short _numberOfIFFDataRecords;
+  std::vector<IFFDataRecord> _iffParameters;
 };
 }  // namespace DIS
-
 // Copyright (c) 1995-2009 held by the author(s).  All rights reserved.
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions

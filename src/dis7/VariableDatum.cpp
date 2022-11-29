@@ -56,7 +56,7 @@ void VariableDatum::swapArray(T* array, uint16_t size) {
     }
 }
 
-void VariableDatum::shiftLeft(unsigned char* array, uint16_t len, uint32_t shift) {
+void VariableDatum::shiftLeft(char* array, uint16_t len, uint32_t shift) {
     uint32_t i = 0;
 
     // compute how many bytes eventually we have to shift
@@ -93,15 +93,15 @@ void VariableDatum::shiftLeft(unsigned char* array, uint16_t len, uint32_t shift
     }
 }
 
-void VariableDatum::shiftRight(unsigned char* array, uint16_t len, uint32_t shift) {
+void VariableDatum::shiftRight(char* array, uint16_t len, uint32_t shift) {
     // compute how many bytes eventually we have to skip
     // if we have to shift 10 bit we will lose the last byte
     // and shift the new last one of 2 bit
     uint8_t start = shift / 8;
     uint8_t shiftBits = shift % 8;
     uint8_t remainingBytes = len - start;
-    unsigned char previous = 0;
-    unsigned char* copyArray = new unsigned char[len];
+    char previous = 0;
+     char* copyArray = new char[len];
     memcpy(copyArray, array, len);
     for (int i = 0; i < len; i++) {
         if (i > start) {
@@ -112,7 +112,6 @@ void VariableDatum::shiftRight(unsigned char* array, uint16_t len, uint32_t shif
 
     //TODO Find a way to not create a copy array
     delete copyArray;
-
 
     if (true)
         return;
@@ -133,7 +132,7 @@ void VariableDatum::shiftRight(unsigned char* array, uint16_t len, uint32_t shif
     }
 }
 
-unsigned char* VariableDatum::getPayLoad(bool shiftRightOption) {
+char* VariableDatum::getPayLoad(bool shiftRightOption) {
     // we have to take the ceiling integer (20 bits shall be transmitted using 3
     // bytes). Please note that this will allow us to not take into account
     // the whole padding, so at the end of the process we have to shift only for
@@ -153,9 +152,10 @@ unsigned char* VariableDatum::getPayLoad(bool shiftRightOption) {
     // std::cout << "chunksLength = " << std::to_string(chunksLength) << std::endl;
     // std::cout << "paddingBits (byte aligned) = " << std::to_string(paddingBits) << std::endl;
     /**
-   * allocate the char* bytebuffer
+   * allocate the char* bytebuffer, we add an extra byte that will be set to 0
+   * in order to allow to directly print in case you are using ASCII message
    */
-    unsigned char* bytesBuffer = new unsigned char[bytesLength + 1];
+    char* bytesBuffer = new char[bytesLength + 1];
     memset(bytesBuffer, 0, bytesLength + 1);
     int totalBytesProcessed = 0;
 
@@ -179,7 +179,7 @@ unsigned char* VariableDatum::getPayLoad(bool shiftRightOption) {
     return bytesBuffer;
 }
 
-void VariableDatum::setPayLoad(unsigned char* data, int howManyBytes) {
+void VariableDatum::setPayLoad(char* data, int howManyBytes) {
     // count how many chunks we have to iterate. If we have 3 bytes of data we
     // have to process at least a chunk, so we use ceil
     unsigned int chunksLength = static_cast<unsigned int>(ceil(howManyBytes / 8.0));
@@ -261,9 +261,9 @@ bool VariableDatum::operator==(const VariableDatum& rhs) const {
 int VariableDatum::getMarshalledSize() const {
     int marshalSize = 0;
 
-    marshalSize = marshalSize + 4;  // _variableDatumID
-    marshalSize = marshalSize + 4;  // _variableDatumLength
-    marshalSize = marshalSize + _variableDatums.size() * 8; // Each element is 8 bytes long  
+    marshalSize = marshalSize + 4;                           // _variableDatumID
+    marshalSize = marshalSize + 4;                           // _variableDatumLength
+    marshalSize = marshalSize + _variableDatums.size() * 8;  // Each element is 8 bytes long
     return marshalSize;
 }
 

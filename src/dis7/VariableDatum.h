@@ -85,7 +85,7 @@ class EXPORT_MACRO VariableDatum {
    * described above
    * @return char* the array of data already shifted if requested
    */
-  unsigned char* getPayLoad(bool shiftRightOption = true);
+   char* getPayLoad(bool shiftRightOption = true);
 
   /**
    * @brief Set the Pay Load
@@ -97,7 +97,7 @@ class EXPORT_MACRO VariableDatum {
    * Here we set the variable datum length using the number of bytes * 8. If it is 
    * different
    */
-  void setPayLoad(unsigned char* data, int howManyBytes);
+  void setPayLoad(char* data, int howManyBytes);
 
   /**
    * @brief Retrieve how many bit have been used for padding
@@ -118,7 +118,7 @@ class EXPORT_MACRO VariableDatum {
    * @param len The number of array elements (it is the number of bytes).
    * @param shift The number of bits to shift right the array
    */
-  void shiftRight(unsigned char* array, uint16_t len, uint32_t shift);
+  void shiftRight(char* array, uint16_t len, uint32_t shift);
 
   /**
    * @brief Shift an array left of the given bits
@@ -127,7 +127,7 @@ class EXPORT_MACRO VariableDatum {
    * @param len the number of array elements (it is the number of bytes).
    * @param shift the number of bit to shift left the array
    */
-  void shiftLeft(unsigned char* array, uint16_t len, uint32_t shift);
+  void shiftLeft(char* array, uint16_t len, uint32_t shift);
 
   /**
    * @brief Swap (reverse) the array of the specified size

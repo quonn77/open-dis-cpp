@@ -1,69 +1,70 @@
 #pragma once
 
+#include <dis7/EntityID.h>
+#include <dis7/PduSuperclass.h>
 #include <dis7/msLibMacro.h>
 #include <utils/DataStream.h>
-#include <dis7/IPDU.h>
 
 namespace DIS {
-// The superclass for all PDUs, including classic and Live Entity (LE) PDUs.
-// This incorporates the PduHeader record, section 7.2.2
 
 // Copyright (c) 2007-2009, MOVES Institute, Naval Postgraduate School. All
 // rights reserved.
-//
-// @author DMcG, jkg
-
-class EXPORT_MACRO PduSuperclass : public IPDU{
- protected:
-  /** The version of the protocol. 5=DIS-1995, 6=DIS-1998, 7=DIS-2009. */
-  unsigned char _protocolVersion;
-
-  /** Exercise ID */
-  unsigned char _exerciseID;
-
-  /** Type of pdu, unique for each PDU class */
-  unsigned char _pduType;
-
-  /** value that refers to the protocol family, eg SimulationManagement, et */
-  unsigned char _protocolFamily;
-
-  /** Timestamp value */
-  unsigned int _timestamp;
-
-  /** Length, in bytes, of the PDU */
-  unsigned short _length;
-
+/**
+ * @brief Mode S Interrogator Basic Data record, see page 405 of IEEE 1278.1 2012
+ * for further details
+ * @author Alessio Iannone, quonn77@gmail.com
+ */
+class EXPORT_MACRO ModeSTransponderBasicData {
  public:
-  PduSuperclass();
-  virtual ~PduSuperclass();
-
+  ModeSTransponderBasicData();
+  virtual ~ModeSTransponderBasicData();
   virtual void marshal(DataStream& dataStream) const;
   virtual void unmarshal(DataStream& dataStream);
-
-  unsigned char getProtocolVersion() const;
-  void setProtocolVersion(unsigned char pX);
-
-  unsigned char getExerciseID() const;
-  void setExerciseID(unsigned char pX);
-
-  unsigned char getPduType() const;
-  void setPduType(unsigned char pX);
-
-  unsigned char getProtocolFamily() const;
-  void setProtocolFamily(unsigned char pX);
-
-  unsigned int getTimestamp() const;
-  void setTimestamp(unsigned int pX);
-
-  unsigned short getLength() const;
-  void setLength(unsigned short pX);
-
   virtual int getMarshalledSize() const;
 
-  bool operator==(const PduSuperclass& rhs) const;
+  bool operator==(const ModeSTransponderBasicData& rhs) const;
+
+  unsigned char getModeSTransponderStatus();
+  void setModeSTransponderStatus(unsigned char status);
+
+  unsigned char getModeSLevelPresent();
+  void setModeSLevelPresent(unsigned char modeSLevelPresent);
+  
+  unsigned char getAircraftPresentDomain();
+  void setAirCraftPresentDomain(unsigned char aircraftPresentDomain);
+  
+  unsigned long long getAircraftIdentification();
+  void setAircraftIdentification(unsigned long long identification);
+  
+  unsigned int getAircraftAddress();
+  void setAircraftAddress(unsigned int address);
+  
+  unsigned char getAircraftIDType();
+  void setAircraftIDType(unsigned char type);
+
+  unsigned char getDAPSource();
+  void setDAPSource(unsigned char source);
+
+  unsigned short getModeSAltitude();
+  void setModeSAltitude(unsigned short modeSAltitude);
+
+  unsigned char getCapabilityReport();
+  void setCapabilityReport(unsigned char capabilityReport);
+
+ protected:
+  unsigned char _modeSTransponderStatus;
+  unsigned char _modeSLevelPresent;
+  unsigned char _aircraftPresentDomain;
+  unsigned long long _aircraftIdentification; //64 bit
+  unsigned int  _aircraftAddress; 
+  unsigned char _aircraftIDType;
+  unsigned char _dapSource;
+  unsigned short _modeSAltitude;
+  unsigned char _capabilityReport;
+  unsigned char _paddingA;
+  unsigned short _paddingB;
 };
 }  // namespace DIS
-
 // Copyright (c) 1995-2009 held by the author(s).  All rights reserved.
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
