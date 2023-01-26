@@ -41,7 +41,7 @@ class EXPORT_MACRO Layer3 : public IPDU {
    * @brief Get the Layer3 Mode5 IF object or nullptr if this is the wrong layer
    * type
    *
-   * @return Layer3Mode5IF* or nullptr if this is the wrong layer type
+   * @return Layer3Mode5IF* or throw an illegal_argument if this is the wrong layer type
    */
   Layer3Mode5IF* getLayer3Mode5IF();
   Layer3Mode5IF* getLayer3Mode5IF() const;
@@ -50,7 +50,7 @@ class EXPORT_MACRO Layer3 : public IPDU {
   /**
    * @brief Get the Layer3 Mode5 TF object, or nullptr if wrong layertype union
    *
-   * @return Layer3Mode5TF* or nullptr if this is the wrong layertype
+   * @return Layer3Mode5TF* or throw an illegal_argument if this is the wrong layertype
    */
   Layer3Mode5TF* getLayer3Mode5TF();
   Layer3Mode5TF* getLayer3Mode5TF() const;
